@@ -13,7 +13,8 @@ class ArtistRepositoryTests(unittest.TestCase):
         self.repository.disconnect()
 
     def test_add_artist(self):
-        artist = self.repository.add_artist('Artist 1')
+        artist = Artist('Artist 1')
+        self.repository.add_artist(artist)
         artistInDb = self.repository.get_artist_by_id(artist.id)
         self.assertEqual(artistInDb.id, artist.id)
         self.assertEqual(artistInDb.name, artist.name)

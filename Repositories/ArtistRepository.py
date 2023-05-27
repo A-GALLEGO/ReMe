@@ -1,5 +1,5 @@
 import sqlite3
-from ReMe2.Models.Artist import Artist
+from Models.Artist import Artist
 
 
 
@@ -28,17 +28,15 @@ class ArtistRepository:
         self.conn.commit()
         self.disconnect()
 
-    def add_artist(self, name):
+    def add_artist(self, artist):
         self.connect()
         cursor = self.conn.cursor()
         cursor.execute("""
-            INSERT INTO artists (name)
-            VALUES (?)
-        """, (name,))
+            INSERT INTO artists (id, name)
+            VALUES (?, ?)
+        """, (artist.id, artist.name,))
         self.conn.commit()
-        id = cursor.lastrowid  # Get the auto-incremented ID of the inserted row
         self.disconnect()
-        return Artist(id, name)
 
     def get_all_artists(self):
         self.connect()
@@ -47,7 +45,7 @@ class ArtistRepository:
         artists = []
         rows = cursor.fetchall()
         for row in rows:
-            artist = Artist(row[0], row[1])
+            artist = Artist.init_from_db_row(row)
             artists.append(artist)
         self.disconnect()
         return artists
@@ -59,7 +57,7 @@ class ArtistRepository:
         row = cursor.fetchone()
         self.disconnect()
         if row:
-            return Artist(row[0], row[1])
+            return Artist.init_from_db_row(row)
         return None
 
     def update_artist(self, artist):
