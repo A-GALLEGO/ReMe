@@ -1,9 +1,10 @@
 import sqlite3
+from Models.Playlist import Playlists
+
 
 class PlaylistRepository:
-    def __init__(self, db_file, playlist_model):
+    def __init__(self, db_file):
         self.db_file = db_file
-        self.playlist_model = playlist_model
         self.conn = None
 
     def connect(self):
@@ -19,21 +20,20 @@ class PlaylistRepository:
         cursor = self.conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS playlists (
-                playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT,
-                songs TEXT
+                id TEXT PRIMARY KEY,
+                name TEXT
             )
         """)
         self.conn.commit()
         self.disconnect()
 
-    def add_playlist(self, name, songs):
+    def add_playlist(self, playlist):
         self.connect()
         cursor = self.conn.cursor()
         cursor.execute("""
-            INSERT INTO playlists (name, songs)
+            INSERT INTO playlists (id, name)
             VALUES (?, ?)
-        """, (name, ', '.join(songs)))
+        """, (playlist.id, playlist.name,))
         self.conn.commit()
         self.disconnect()
 
@@ -44,32 +44,59 @@ class PlaylistRepository:
         playlists = []
         rows = cursor.fetchall()
         for row in rows:
-            playlist = self.playlist_model(row[0], row[1], row[2].split(', '))
+            playlist = Playlists(row[0], row[1])
             playlists.append(playlist)
         self.disconnect()
         return playlists
 
-    def get_playlist_by_id(self, playlist_id):
+    def get_playlist_by_id(self, id):
         self.connect()
         cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM playlists WHERE playlist_id = ?", (playlist_id,))
+        cursor.execute("SELECT * FROM playlists WHERE id = ?", (id,))
         row = cursor.fetchone()
         self.disconnect()
         if row:
-            return self.playlist_model(row[0], row[1], row[2].split(', '))
+            playlist = Playlists(row[0], row[1])
+            return playlist
         return None
+    
+    def get_playlist_by_name(self, name):
+        self.connect()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM playlists WHERE name = ?", (name,))
+        row = cursor.fetchone()
+        self.disconnect()
+        if row:
+            playlist = Playlists(row[0], row[1])
+            return playlist
+        return None
+    
+    def get_playlistID_by_name(self, name):
+        self.connect()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id FROM playlists WHERE name = ?", (name,))
+        row = cursor.fetchone()
+        self.disconnect()
+        if row:
+            playlist_id = row[0]
+            return playlist_id
+        return None
+        
 
     def update_playlist(self, playlist):
         self.connect()
         cursor = self.conn.cursor()
-        cursor.execute("UPDATE playlists SET name = ?, songs = ? WHERE playlist_id = ?",
-                       (playlist.name, ', '.join(playlist.songs), playlist.playlist_id))
+
+        update_query = "UPDATE playlists SET name = ? WHERE id = ?"
+        update_values = [playlist.name, playlist.id]
+
+        cursor.execute(update_query, tuple(update_values))
         self.conn.commit()
         self.disconnect()
 
-    def delete_playlist(self, playlist_id):
+    def delete_playlist(self, id):
         self.connect()
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM playlists WHERE playlist_id = ?", (playlist_id,))
+        cursor.execute("DELETE FROM playlists WHERE id = ?", (id,))
         self.conn.commit()
         self.disconnect()

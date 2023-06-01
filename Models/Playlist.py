@@ -1,11 +1,9 @@
+import uuid
 
-
-class Playlist:
-    def __init__(self, playlist_id, name, songs):
-        self.playlist_id = playlist_id
+class Playlists:
+    def __init__(self, id=None, name=None):
+        self.id = id if id is not None else str(uuid.uuid4())
         self.name = name
-        self.songs = songs
 
     def __str__(self):
-        return f"Playlist ID: {self.playlist_id}, Name: {self.name}, Songs: {', '.join(self.songs)}"
-
+        return f"Playlist ID: {self.id}, Name: {self.name}"

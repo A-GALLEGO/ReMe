@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 from functools import partial
-import PlaylistRepository
+import Repositories.PlaylistRepository
 
 class PlaylistPage:
     def __init__(self, playlist_repo):

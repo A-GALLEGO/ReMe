@@ -21,8 +21,8 @@ class ArtistRepository:
         cursor = self.conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS artists (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT,
+                id TEXT PRIMARY KEY,
+                name TEXT
             )
         """)
         self.conn.commit()
@@ -59,23 +59,32 @@ class ArtistRepository:
         if row:
             return Artist.init_from_db_row(row)
         return None
+    
+    def get_artist_by_name(self, artist_name):
+        connection = sqlite3.connect(self.db_file)
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM artists WHERE name=?", (artist_name,))
+        artist = cursor.fetchone()
+        connection.close()
+        return artist
+    
+    def get_artist_id_by_name(self, artist_name):
+        connection = sqlite3.connect(self.db_file)
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM artists WHERE name = ?", (artist_name,))
+        result = cursor.fetchone()
+        connection.close()
+        if result:
+            return result[0]
+        else:
+            return None
 
     def update_artist(self, artist):
         self.connect()
         cursor = self.conn.cursor()
 
-        update_query = "UPDATE artists SET"
-        update_values = []
-
-        if artist.name:
-            update_query += " name = ?,"
-            update_values.append(artist.name)
-
-        # Remove the trailing comma from the query
-        update_query = update_query.rstrip(',')
-
-        update_query += " WHERE id = ?"
-        update_values.append(artist.id)
+        update_query = "UPDATE artists SET name = ? WHERE id = ?"
+        update_values = [artist.name, artist.id]
 
         cursor.execute(update_query, tuple(update_values))
         self.conn.commit()
